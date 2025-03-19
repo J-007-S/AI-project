@@ -1,158 +1,48 @@
+# IMU Data Denoising: A Learning Journey
+
+## Paper Reference
 # Denoising IMU Gyroscope with Deep Learning for Open-Loop Attitude Estimation
+## Overview [[IEEE paper](https://ieeexplore.ieee.org/document/9119813), [preprint paper]
 
-## Overview [[IEEE paper](https://ieeexplore.ieee.org/document/9119813), [preprint paper](https://hal.archives-ouvertes.fr/hal-02488923v4/document)]
+## Project Overview
+This repository documents my journey in replicating and understanding the method presented in the paper for denoising IMU data using RNN. It's a personal learning project where I explore, experiment, and gradually build up the implementation.
 
-This repo contains a learning method for denoising gyroscopes of Inertial Measurement Units (IMUs) using
-ground truth data. In terms of attitude dead-reckoning estimation, the obtained algorithm is able to beat top-ranked
-visual-inertial odometry systems [3-5] in terms of attitude estimation
-although it only uses signals from a low-cost IMU. The obtained
-performances are achieved thanks to a well chosen model, and a
-proper loss function for orientation increments. Our approach builds upon a neural network based
-on dilated convolutions, without requiring any recurrent neural
-network.
+## Reference Resources
+- **GitHub Repository**: [BahMoh/denoise-imu-gyro](https://github.com/BahMoh/denoise-imu-gyro)
+- **Recommended Up主**:
+  - 跟李沐学AI
+  - 我是土堆
+  - 
+## Dataset Exploration
+I've been looking into several datasets that could be useful for this project:
 
-## Code
-Our implementation is based on Python 3 and [Pytorch](https://pytorch.org/). We
-test the code under Ubuntu 16.04, Python 3.5, and Pytorch 1.5. The codebase is licensed under the MIT License.
+### EuRoC MAV Dataset
+- **Source**: [EuRoC MAV Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)
+- **Description**: This dataset contains visual-inertial data collected on-board a Micro Aerial Vehicle (MAV). It includes stereo images, synchronized IMU measurements, and accurate motion and structure ground-truth.
 
-### Installation & Prerequies
-1.  Install the correct version of [Pytorch](http://pytorch.org)
-```
-pip install --pre torch  -f https://download.pytorch.org/whl/nightly/cu101/torch_nightly.html
-```
+### TUM Visual-Inertial Dataset
+- **Source**: [TUM Visual-Inertial Dataset](https://paperswithcode.com/dataset/tum-visual-inertial-dataset)
+- **Description**: A diverse set of sequences in different scenes for evaluating visual-inertial odometry. It provides camera images with high resolution and dynamic range.
 
-2.  Clone this repo and create empty directories
-```
-git clone https://github.com/mbrossar/denoise-imu-gyro.git
-mkdir denoise-imu-gyro/data
-mkdir denoise-imu-gyro/results
-```
+### OpenVINS Platform
+- **Source**: [OpenVINS](https://docs.openvins.com/)
+- **GitHub**: [rpng/open_vins](https://github.com/rpng/open_vins)
+- **Description**: An open-source platform for visual-inertial navigation research. It includes a state-of-the-art filter-based visual-inertial estimator.
 
-3.  Install the following required Python packages, e.g. with the pip command
-```
-pip install -r denoise-imu-gyro/requirements.txt
-```
+## Data Processing Insights
+### Noise Simulation
+I've been working on simulating real-world conditions by adding noise to the IMU data. The `add_noise` method generates Gaussian noise with different intensities for various sensor axes, mimicking the errors that actual sensors might introduce.
 
-### Testing
+## Understanding the Data
+### Synchronization
+IMU data and ground-truth data are synchronized using timestamps. This ensures that each IMU reading corresponds accurately to the position and orientation data.
 
-1. Download reformated pickle format of the _EuRoC_ [1] and _TUM-VI_ [2] datasets at this [url](https://cloud.mines-paristech.fr/index.php/s/d2lHqzIk1PxzWmb/download), extract and copy then in the `data` folder.
-```
-wget "https://cloud.mines-paristech.fr/index.php/s/d2lHqzIk1PxzWmb/download"
-unzip download -d denoise-imu-gyro/data
-rm download
-```
-These file can alternatively be generated after downloading the _EuRoC_ and
-_TUM-VI_ datasets. They will be generated when lanching the main file after
-providing data paths.
+### Interpolation Method
+The Slerp (Spherical Linear Interpolation) method is used for smooth rotation transitions. This is crucial for applications like robot path planning or animation generation where smooth motion is required.
 
-2. Download optimized parameters at this [url](https://cloud.mines-paristech.fr/index.php/s/OLnj74YXtOLA7Hv/download), extract and copy in the `results` folder.
-```
-wget "https://cloud.mines-paristech.fr/index.php/s/OLnj74YXtOLA7Hv/download"
-unzip download -d denoise-imu-gyro/results
-rm download
-```
-3. Test on the dataset on your choice !
-```
-cd denoise-imu-gyro
-python3 main_EUROC.py
-# or alternatively
-# python3 main_TUMVI.py
-```
+## Network Architecture Exploration
+### BaseNet
+I've implemented a general convolutional neural network structure called BaseNet. It consists of multiple convolutional layers, batch normalization, and GELU activation functions. The use of dilated convolutions helps expand the receptive field, allowing the network to capture longer-term dependencies in the data.
 
-You can then compare results with the evaluation [toolbox](https://github.com/rpng/open_vins/) of [3].
-
-### Training
-You can train the method by
-uncomment the two lines after # train in the main files. Edit then the
-configuration to obtain results with another sets of parameters. It roughly
-takes 5 minutes per dataset with a decent GPU.
-
-## Schematic Illustration of the Proposed Method
-
-<p align="center">
-<img src="figures/methode.jpg" alt="Schematic illustration of the proposed
-method" class="center" width="600"/>
-</p>
-
-The convolutional neural network
-computes gyro corrections (based on past IMU measurements) that filters
-undesirable errors in the raw IMU signals. We
-then perform open-loop time integration on the noise-free measurements
-for regressing low frequency errors between ground truth and estimated
-orientation increments.
-
-## Results
-
-<p align="center">
-<img src="figures/rpy.jpg" alt="Orientation estimates"  width="800"/>
-</p>
-
-Orientation estimates on the test sequence _MH 04 difficult_ of [1] (left), and
-_room 4_ of [2] (right). Our method removes errors of the  IMU.
-
-<p align="center">
-<img src="figures/boxplot.jpg" alt="Relative Orientation Error" width="500"/>
-</p>
-
-Relative Orientation Error (ROE) in terms of 3D orientation and
-yaw errors on the test sequences. Our method competes with VIO methods albeit based only on IMU signals.
-
-## Paper
-The paper M. Brossard, S. Bonnabel and A. Barrau, "Denoising IMU Gyroscopes With Deep Learning for Open-Loop Attitude Estimation," in _IEEE Robotics and Automation Letters_, vol. 5, no. 3, pp. 4796-4803, July 2020, doi: 10.1109/LRA.2020.3003256., relative to this repo, is
-available at this [url](https://ieeexplore.ieee.org/document/9119813) and a preprint at this [url](https://hal.archives-ouvertes.fr/hal-02488923/document).
-
-
-## Citation
-
-If you use this code in your research, please cite:
-
-```
-@article{brossard2020denoising,
-  author={M. {Brossard} and S. {Bonnabel} and A. {Barrau}},
-  journal={IEEE Robotics and Automation Letters}, 
-  title={Denoising IMU Gyroscopes With Deep Learning for Open-Loop Attitude Estimation}, 
-  year={2020},
-  volume={5},
-  number={3},
-  pages={4796-4803},
-  }
-
-```
-
-## Authors
-
-This code was written by the [Centre of Robotique](http://caor-mines-paristech.fr/en/home/) at the
-MINESParisTech, Paris, France.
-
-[Martin
-Brossard](mailto:martin.brossard@mines-paristech.fr)^, [Axel
-Barrau](mailto:axel.barrau@safrangroup.com)^ and [Silvère
-Bonnabel](mailto:silvere.bonnabel@mines-paristech.fr)^.
-
-^[MINES ParisTech](http://www.mines-paristech.eu/), PSL Research University,
-Centre for Robotics, 60 Boulevard Saint-Michel, 75006 Paris, France.
-
-## Biblio
-
-[1] M. Burri, J. Nikolic, P. Gohl, T. Schneider, J. Rehder, S. Omari,
-M. W. Achtelik, and R. Siegwart, ``_The EuRoC Micro Aerial Vehicle
-Datasets_", The International Journal of Robotics Research, vol. 35,
-no. 10, pp. 1157–1163, 2016.
-
-[2] D. Schubert, T. Goll, N. Demmel, V. Usenko, J. Stuckler, and
-D. Cremers, ``_The TUM VI Benchmark for Evaluating Visual-Inertial
-Odometry_", in International Conference on Intelligent Robots and
-Systems (IROS). IEEE, pp. 1680–1687, 2018.
-
-[3] P. Geneva, K. Eckenhoff, W. Lee, Y. Yang, and G. Huang, ``_OpenVINS:
-A Research Platform for Visual-Inertial Estimation_", IROS Workshop
-on Visual-Inertial Navigation: Challenges and Applications, 2019.
-
-[4] T. Qin, P. Li, and S. Shen, ``_VINS-Mono: A Robust and Versatile
-Monocular Visual-Inertial State Estimator_", IEEE Transactions on
-Robotics, vol. 34, no. 4, pp. 1004–1020, 2018.
-
-[5] M. Bloesch, M. Burri, S. Omari, M. Hutter, and R. Siegwart, ``_Iterated
-Extended Kalman Filter Based Visual-Inertial Odometry Using Direct Photometric
-Feedback_", The International Journal of Robotics Research,vol. 36, no. 10, pp.
-1053ñ1072, 2017.
+### GyroNet Extension
+Building upon BaseNet, I've developed GyroNet specifically for processing gyroscope data. It incorporates rotation matrix transformations and standard deviation predictions to refine the network outputs, making it suitable for tasks requiring high-precision orientation estimation.
