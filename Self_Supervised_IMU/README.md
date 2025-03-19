@@ -20,9 +20,6 @@
 
 #### 2. Code Reproduction (IMUDB Project)  
 - **Goal**: Reproduce the official implementation  
-- **Issues**:  
-  ❗ Dataset too large for local download  
-  ❗ Server login failures; partial reproduction with subset data failed  
 - **Current Status**:  
   ⏸️ Paused due to data limitations; shifted focus to AR methods.  
 
