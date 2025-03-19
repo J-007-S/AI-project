@@ -1,8 +1,8 @@
 # IMU Data Denoising: A Learning Journey
 
 ## Paper Reference
-# Denoising IMU Gyroscope with Deep Learning for Open-Loop Attitude Estimation
-## Overview [[IEEE paper](https://ieeexplore.ieee.org/document/9119813), [preprint paper]
+-## Denoising IMU Gyroscope with Deep Learning for Open-Loop Attitude Estimation
+-## Overview [[IEEE paper](https://ieeexplore.ieee.org/document/9119813), [preprint paper]
 
 ## Project Overview
 This repository documents my journey in replicating and understanding the method presented in the paper for denoising IMU data using RNN. It's a personal learning project where I explore, experiment, and gradually build up the implementation.
